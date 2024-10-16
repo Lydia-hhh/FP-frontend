@@ -2,9 +2,14 @@ import { useRef, useEffect, useState } from "react";
 import * as echarts from 'echarts';
 import { Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
+
+const _xData=["jiao1","jiao2","jiao3","jiao4","jiao5","jiao6","jiao7","jiao8","jiao9","jiao10","jiao11","jiao12","jiao13","jiao14","jiao15","jiao16"];
+        const _yData=[2,4,0,4,3,2.5,1.0,2,3,5,2,1,9,2,3,4];
 export function Monitor(){
     const chartRef = useRef<any>(null);
     const myChart = useRef<any>(null);
+    const [xData,setxData]=useState<string[]>(_xData);
+    const [yData,setyData]=useState<number[]>(_yData);
     const initChart = () => {
         if (myChart.current) {
             myChart.current.dispose();
@@ -19,12 +24,11 @@ export function Monitor(){
     }
 
     const getChart = () => {
-        const xData=["jiao1","jiao2","yushan3"];
-        const yData=[2,4,0];
+        
         const option = {
             title: {
                 left: 'center',
-                text: "Bar Chart"
+                text: "Quota Bar Chart"
             },
             tooltip: {
                 trigger: 'axis',
@@ -34,10 +38,12 @@ export function Monitor(){
             },
             xAxis: {
                 type: 'category',
-                data: xData
+                data: xData,
+                name:"user"
             },
             yAxis: {
-                type: 'value'
+                type: 'value',
+                name:'disk usage/GB'
             },
             series: [
                 {

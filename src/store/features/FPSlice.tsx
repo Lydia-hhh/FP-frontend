@@ -29,7 +29,14 @@ export const getEmploysOrg = createAsyncThunk("FP/getEmploysOrg", async () => {
         console.log(err)
     }
 })
-
+export const postQuota=createAsyncThunk("FP/postQuota",async(params:any)=>{
+    try{
+        const res=await service.FPService.Quota_Post(params);
+        return res;
+    }catch(err:any){
+        console.log(err);
+    }
+})
 const FPSlice = createSlice({
     name: 'FPSlice', initialState,
     reducers: {

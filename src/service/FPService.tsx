@@ -33,3 +33,13 @@ export function Employs_Org() {
     })
 }
 
+export function Quota_Post(params:any){
+    return new Promise((resolve,reject)=>{
+        request.post(api.FPApi.QUOTA,{params}).then((res)=>{
+            resolve(res);
+        }).catch((err)=>{
+            reject(err);
+        })
+    })
+}
+

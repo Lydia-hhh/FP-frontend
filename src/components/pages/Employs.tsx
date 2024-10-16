@@ -1,9 +1,12 @@
 
-import {Button, Space, Table, Tag, Modal, InputNumber, InputNumberProps, Select} from 'antd';
+import {Button, Space, Table, Tag, Modal, InputNumber, InputNumberProps, Select, message} from 'antd';
 import type { TableProps } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { FormProps } from 'antd';
 import {  Checkbox, Form, Input } from 'antd';
+import { useDispatch } from 'react-redux';
+import { getEmploys, getEmploysOrg, postEmploys, postQuota } from '../../store/features/FPSlice';
+import { unwrapResult } from '@reduxjs/toolkit';
 
 
 interface DataType {
@@ -21,14 +24,6 @@ type FieldType = {
     password?: string;
 };
 
-const onFinish: FormProps<FieldType>['onFinish'] = (values) => {
-    console.log('Success:', values);
-
-};
-
-const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = (errorInfo) => {
-    console.log('Failed:', errorInfo);
-};
 
 
 
@@ -55,13 +50,24 @@ const data: DataType[] = [
         dept: 'C9899',
     },
 ];
+const optionData:any[]=[
+    { value: 'C9899', label: 'C9899' },
+    { value: 'E4537', label: 'E4537' },
+    { value: 'A0001', label: 'A0001' },
+]
 
 export function Employs(){
+    const dispatch=useDispatch();
     const [open, setOpen] = useState(false);
     const [addopen,setAddopen]=useState(false);
     const [confirmLoading, setConfirmLoading] = useState(false);
     const [form] = Form.useForm();
-    const showModal = () => {
+    const [tableData,setTableData]=useState<any[]>(data);
+    const [options,setOptions]=useState<any[]>(optionData)
+    const [quota,setQuota]=useState<any>(3);
+    const [name,setName]=useState<string|null>(null);
+    const showModal = (login:any) => {
+        setName(login);
         setOpen(true);
     };
     const showAddModal = () => {
@@ -69,18 +75,20 @@ export function Employs(){
     };
     const handleOk = () => {
         setConfirmLoading(true);
-        setTimeout(() => {
+        //set quota
+        const params={
+            name:name,
+            quotaSize:quota
+        };
+        dispatch(postQuota(params) as any).then(unwrapResult).then(async (res:any)=>{
+            if(res && res.code==200){
+                message.success("Set quota successfully!");
+            }else{
+                message.error("Set quota failed.")
+            }
+            setConfirmLoading(false);
             setOpen(false);
-            setConfirmLoading(false);
-        }, 500);
-    };
-
-    const handleAddOk = () => {
-        setConfirmLoading(true);
-        setTimeout(() => {
-            setAddopen(false);
-            setConfirmLoading(false);
-        }, 500);
+        })
     };
 
     const handleCancel = () => {
@@ -123,42 +131,90 @@ export function Employs(){
             key: 'action',
             render: (_, record) => (
                 <Space size="middle">
-                    <Button onClick={showModal}>set quota</Button>
+                    <Button onClick={()=>showModal(record.login)}>set quota</Button>
                 </Space>
             ),
         },
     ];
     const onChange: InputNumberProps['onChange'] = (value) => {
         console.log('changed', value);
+        setQuota(value);
     };
     const handleChange = (value: string) => {
         console.log(`selected ${value}`);
         form.setFieldsValue({ dept: value });
     };
 
+    const onFinish: FormProps<FieldType>['onFinish'] = (values) => {
+        console.log('Success:', values);
+        setConfirmLoading(true);
+        dispatch(postEmploys(values) as any).then(unwrapResult).then(async (res:any)=>{
+            setConfirmLoading(false);
+            setOpen(false);
+            if(res && res.code==200){
+                message.success("Add user successfully!");
+                getEmploysList();
+            }else{
+                message.error("Add user failed.")
+            }
+        })
+    };
+    
+    const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = (errorInfo) => {
+        console.log('Failed:', errorInfo);
+    };
+
+    const getEmploysList=()=>{
+        dispatch(getEmploys() as any).then(unwrapResult).then(async (res:any)=>{
+            if(res && res.code==200){
+                setTableData(res.data);
+            }
+        })
+    }
+    const getDepartments=()=>{
+        dispatch(getEmploysOrg() as any).then(unwrapResult).then(async (res:any)=>{
+            if(res && res.code==200){
+                setOptions(res.data);
+            }
+        })
+    }
+    useEffect(()=>{
+        getEmploysList();
+        getDepartments();
+    },[])
+
+    const handleChangeNumber=(value:any)=>{
+        console.log(value);
+    }
 
     return(
+
         <div style={{width:'100%',height:'calc(100vh - 180px)'}}>
+
+        {/* add spin */}
             <div style={{float:'right',marginTop:'20px',marginBottom:'20px'}}>
                 <Button type='primary' style={{width:'300px'}} onClick={showAddModal}>Add User</Button>
             </div>
 
-            <Table<DataType> columns={columns} dataSource={data} />
+            <Table<DataType> columns={columns} dataSource={tableData} />
+     {/* add spin */}
+
+
             <Modal
-                title="set quota"
+                title="Set Quota"
                 open={open}
                 onOk={handleOk}
                 confirmLoading={confirmLoading}
                 onCancel={handleCancel}
             >
                 <div style={{marginLeft:'10%'}}>
-                    <InputNumber style={{width:'80%'}} defaultValue={3} onChange={onChange} />
+                    <InputNumber addonAfter="GB" min={0} style={{width:'80%'}} defaultValue={3} onChange={onChange} />
                 </div>
 
             </Modal>
 
             <Modal
-                title="set quota"
+                title="Add User"
                 open={addopen}
                 confirmLoading={confirmLoading}
                 footer=''
@@ -205,13 +261,9 @@ export function Employs(){
                           rules={[{ required: true, message: 'Please input your department!' }]}
                       >
                           <Select
-                              defaultValue="C9899"
+                              defaultValue=""
                               onChange={handleChange}
-                              options={[
-                                  { value: 'C9899', label: 'C9899' },
-                                  { value: 'E4537', label: 'E4537' },
-                                  { value: 'A0001', label: 'A0001' },
-                              ]}
+                              options={options}
                               allowClear
                           />
                       </Form.Item>
