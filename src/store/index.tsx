@@ -1,7 +1,8 @@
 import { Action, ThunkAction, configureStore } from "@reduxjs/toolkit";
-import portfolioReducer from './features/portfolioSlice';
+import FPReducer from './features/FPSlice'
+
 export const store=configureStore({
-    reducer:{portfolioReducer}
+    reducer:{FPReducer}
 })
 export type AppDispatch = typeof store.dispatch;
 export type RootState = ReturnType<typeof store.getState>;

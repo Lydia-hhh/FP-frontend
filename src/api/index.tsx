@@ -1,6 +1,6 @@
-import * as portfolioApi from './portfolio';
+import * as FPApi from './FPApi';
 
 const obj={
-    portfolioApi
+FPApi
 }
 export default obj;

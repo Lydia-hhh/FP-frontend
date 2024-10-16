@@ -2,26 +2,29 @@ import { useRef, useEffect, useState } from "react";
 import * as echarts from 'echarts';
 import { Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
-function BarChart({ timePrice, loading,title }: any) {
+export function Monitor(){
     const chartRef = useRef<any>(null);
     const myChart = useRef<any>(null);
     const initChart = () => {
         if (myChart.current) {
             myChart.current.dispose();
         }
-        myChart.current = echarts.init(chartRef.current, null, { renderer: 'canvas' });
-        window.addEventListener('resize', resizeChart)
+        myChart.current = echarts.init(chartRef.current,null,{renderer:'canvas'});
+        window.addEventListener('resize', resizeChart);
     }
-    const resizeChart = () => {
-        if (myChart.current) {
-            myChart.current.resize()
+    const resizeChart=()=>{
+        if(myChart.current){
+            myChart.current.resize();
         }
     }
+
     const getChart = () => {
-        let option = {
+        const xData=["jiao1","jiao2","yushan3"];
+        const yData=[2,4,0];
+        const option = {
             title: {
                 left: 'center',
-                text: title
+                text: "Bar Chart"
             },
             tooltip: {
                 trigger: 'axis',
@@ -30,20 +33,16 @@ function BarChart({ timePrice, loading,title }: any) {
                 }
             },
             xAxis: {
-                type: 'time',
+                type: 'category',
+                data: xData
             },
             yAxis: {
-                type: 'value',
+                type: 'value'
             },
             series: [
                 {
-                    type: 'bar',
-                    data: timePrice,
-                    itemStyle: {
-                        color: function (params: any) {
-                            return params.value[1] > 0 ? '#91cc75' : '#EE6666';
-                        }
-                    }
+                    data: yData,
+                    type: 'bar'
                 }
             ],
             dataZoom: [
@@ -60,23 +59,14 @@ function BarChart({ timePrice, loading,title }: any) {
         };
         myChart.current.setOption(option);
     }
-
     useEffect(() => {
         initChart();
-        return () => {
-            window.removeEventListener('resize', resizeChart);
-        }
-    }, [])
-    useEffect(() => {
-        if (myChart.current) {
-            getChart();
-            resizeChart();
-        }
-    }, [timePrice])
+        getChart();
+    }, []);
+
     return (
-        <Spin indicator={<LoadingOutlined spin />} spinning={loading}>
-            <div style={{ width: '100%', height: '400px' }} ref={chartRef}></div>
-        </Spin>
+        <div style={{width: '100%', height: 'calc(100vh - 180px)'}} ref={chartRef}></div>
     )
 }
-export default BarChart;
+
+export default Monitor;

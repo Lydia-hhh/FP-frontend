@@ -1,5 +1,7 @@
-import * as portfolioService from './portfolioService'
+
+import * as FPService from './FPService'
+
 const obj={
-    portfolioService
+    FPService
 }
 export default obj;
