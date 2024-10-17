@@ -233,7 +233,10 @@ export function Employs(){
         {
             title:'Disk Usage',
             dataIndex:'disk_usage',
-            key:'disk_usage'
+            key:'disk_usage',
+            render:(text,record)=>(
+                <span>{text} MB</span>
+            )
         }
     ]
 
@@ -335,8 +338,8 @@ export function Employs(){
         setConfirmLoading(true);
         dispatch(postEmploys(values) as any).then(unwrapResult).then(async (res:any)=>{
             setConfirmLoading(false);
-            setOpen(false);
-            if(res && res.id){
+            setAddopen(false);
+            if(res!==null){
                 message.success("Add user successfully!");
                 getEmploysList();
             }else{
@@ -433,81 +436,86 @@ export function Employs(){
                 footer=''
                 closable={false}
             >
-              <div>
-                  <Form
-                      form={form}
-                      name="basic"
-                      labelCol={{ span: 6 }}
-                      wrapperCol={{ span: 18 }}
-                      style={{ maxWidth: 400 }}
-                      initialValues={{ remember: true }}
-                      onFinish={onFinish}
-                      onFinishFailed={onFinishFailed}
-                      autoComplete="off"
-                  >
-                      <Form.Item<FieldType>
-                          label="name"
-                          name="name"
-                          rules={[{ required: true, message: 'Please input your name!' }]}
-                      >
-                          <Input />
-                      </Form.Item>
+                <Spin spinning={confirmLoading} indicator={<LoadingOutlined spin/>}>
+                    <div>
+                        <Form
+                            form={form}
+                            name="basic"
+                            labelCol={{span: 6}}
+                            wrapperCol={{span: 18}}
+                            style={{maxWidth: 400}}
+                            initialValues={{remember: true}}
+                            onFinish={onFinish}
+                            onFinishFailed={onFinishFailed}
+                            autoComplete="off"
+                        >
+                            <Form.Item<FieldType>
+                                label="name"
+                                name="name"
+                                rules={[{required: true, message: 'Please input your name!'}]}
+                            >
+                                <Input/>
+                            </Form.Item>
 
-                      <Form.Item<FieldType>
-                          label="login"
-                          name="login"
-                          rules={[{ required: true, message: 'Please input your login!' }]}
-                      >
-                          <Input />
-                      </Form.Item>
+                            <Form.Item<FieldType>
+                                label="login"
+                                name="login"
+                                rules={[{required: true, message: 'Please input your login!'}]}
+                            >
+                                <Input/>
+                            </Form.Item>
 
-                      <Form.Item<FieldType>
-                          label="onboarded"
-                          name="onboarded"
-                          rules={[{ required: true, message: 'Please input your onboarded!' }]}
-                      >
-                          <DatePicker onChange={onDateChange} defaultValue={dayjs()} format="DD/MM/YYYY" />
-                      </Form.Item>
+                            <Form.Item<FieldType>
+                                label="onboarded"
+                                name="onboarded"
+                                rules={[{required: true, message: 'Please input your onboarded!'}]}
+                            >
+                                <DatePicker onChange={onDateChange} defaultValue={dayjs()} format="DD/MM/YYYY"/>
+                            </Form.Item>
 
-                      <Form.Item<FieldType>
-                          label="department"
-                          name="dept"
-                          rules={[{ required: true, message: 'Please input your department!' }]}
-                      >
-                          <Select
-                              defaultValue=""
-                              onChange={handleChange}
-                              options={options}
-                              allowClear
-                          />
-                      </Form.Item>
+                            <Form.Item<FieldType>
+                                label="department"
+                                name="dept"
+                                rules={[{required: true, message: 'Please input your department!'}]}
+                            >
+                                <Select
+                                    defaultValue=""
+                                    onChange={handleChange}
+                                    options={options}
+                                    allowClear
+                                />
+                            </Form.Item>
 
-                      <Form.Item<FieldType>
-                          label="Password"
-                          name="password"
-                          rules={[{ required: true, message: 'Please input your password!' }]}
-                      >
-                          <Input.Password />
-                      </Form.Item>
+                            <Form.Item<FieldType>
+                                label="Password"
+                                name="password"
+                                rules={[{required: true, message: 'Please input your password!'}]}
+                            >
+                                <Input.Password/>
+                            </Form.Item>
 
 
-                      <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-                          <div style={{float:'right'}}>
-                              <Button style={{marginRight:'15px'}} type="primary" htmlType="submit">
-                                  OK
-                              </Button>
-                              <Button onClick={handleAddCancel}>Cancel</Button>
-                          </div>
-                      </Form.Item>
-                  </Form>
-              </div>
+                            <Form.Item wrapperCol={{offset: 8, span: 16}}>
+                                <div style={{float: 'right'}}>
+                                    <Button style={{marginRight: '15px'}} type="primary" htmlType="submit">
+                                        OK
+                                    </Button>
+                                    <Button onClick={handleAddCancel}>Cancel</Button>
+                                </div>
+                            </Form.Item>
+                        </Form>
+                    </div>
+
+                </Spin>
+
 
             </Modal>
             <Drawer title={`${os} Disk Usage History`} onClose={onDrawerClose} open={draweropen}>
-                <Table<HistoryDataType> columns={historyColumns} dataSource={historyTableData} />
+                <Table<HistoryDataType> columns={historyColumns} dataSource={historyTableData}/>
             </Drawer>
         </div>
 
     )
 }
-export  default Employs;
+
+export default Employs;
