@@ -10,24 +10,27 @@ import {
     Select,
     message,
     Popconfirm,
-    PopconfirmProps, Drawer
+    PopconfirmProps, Drawer, DatePickerProps, DatePicker
 } from 'antd';
 import type { TableProps } from 'antd';
 import React, { useEffect, useState } from 'react';
 import type { FormProps } from 'antd';
 import {  Checkbox, Form, Input } from 'antd';
 import { useDispatch } from 'react-redux';
-import { getEmploys, getEmploysOrg, postEmploys, postQuota } from '../../store/features/FPSlice';
+import {getEmploys, getEmploysOrg, getHistoryQuota, postEmploys, postQuota} from '../../store/features/FPSlice';
 import { unwrapResult } from '@reduxjs/toolkit';
 import {EditOutlined, HistoryOutlined} from "@ant-design/icons";
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 
+dayjs.extend(customParseFormat);
 
 interface DataType {
     key:number;
     id: number;
     name: string;
     login: string;
-    onboarded: string;
+    onboarded: any;
     dept: string;
     linux_quota:number;
     windows_quota:number
@@ -42,7 +45,7 @@ interface HistoryDataType{
 type FieldType = {
     name?: string;
     login?:string;
-    onboarded?:string;
+    onboarded?:any;
     dept?:string;
     password?: string;
 };
@@ -121,7 +124,9 @@ export function Employs(){
     const [quota,setQuota]=useState<any>(3);
     const [name,setName]=useState<string|null>(null);
     const [draweropen,setDraweropen]=useState(false)
-    const showDrawer = () => {
+    const [os,setos]=useState("windows");
+    const showDrawer = (login:string,win_flag:boolean) => {
+        fetchHistoryQuota(login,win_flag)
         setDraweropen(true);
     };
 
@@ -129,8 +134,9 @@ export function Employs(){
         setDraweropen(false);
     };
 
-    const showModal = (login:any) => {
+    const showModal = (login:any,_os:any) => {
         setName(login);
+        setos(_os);
         setOpen(true);
     };
     const showAddModal = () => {
@@ -138,7 +144,21 @@ export function Employs(){
     };
     const handleOk = () => {
         setConfirmLoading(true);
-        dispatch(postQuota({name:name,quotaSize:quota}) as any).then(unwrapResult).then(async (res:any)=>{
+        let params={};
+        if(os==="linux"){
+            params={
+                name:name,
+                linux_quota:quota,
+                win_quota:0
+            }
+        }else {
+            params={
+                name:name,
+                linux_quota:0,
+                win_quota:quota
+            }
+        }
+        dispatch(postQuota(params) as any).then(unwrapResult).then(async (res:any)=>{
             if(res && res.code==200){
                 message.success("Set quota successfully!");
             }else{
@@ -169,6 +189,14 @@ export function Employs(){
         console.log(e);
         message.error('Click on No');
     };
+
+    const fetchHistoryQuota=(login:string,win_flag:boolean)=>{
+        dispatch(getHistoryQuota({login:login,win_flag:win_flag}) as any).then(unwrapResult).then((res:any)=>{
+            if(res && res.code==200){
+                sethistoryTableData(res.data);
+            }
+        })
+    }
 
     const historyColumns:TableProps<HistoryDataType>['columns']=[
         {
@@ -219,8 +247,8 @@ export function Employs(){
                     render: (text,record)=>(
                         <div>
                             <span>{text}GB</span>
-                            <Button type="text" icon={<EditOutlined />} onClick={()=>showModal(record.login)}></Button>
-                            <Button type="text" onClick={showDrawer} icon={<HistoryOutlined />}></Button>
+                            <Button type="text" icon={<EditOutlined />} onClick={()=>showModal(record.login,"linux")}></Button>
+                            <Button type="text" onClick={()=>showDrawer(record.login,false)} icon={<HistoryOutlined />}></Button>
                         </div>
 
                     )
@@ -232,8 +260,8 @@ export function Employs(){
                     render: (text,record)=>(
                         <div>
                             <span>{text}GB</span>
-                            <Button type="text" icon={<EditOutlined />} onClick={()=>showModal(record.login)}></Button>
-                            <Button type="text" onClick={showDrawer} icon={<HistoryOutlined />}></Button>
+                            <Button type="text" icon={<EditOutlined />} onClick={()=>showModal(record.login,"windows")}></Button>
+                            <Button type="text" onClick={()=>showDrawer(record.login,true)} icon={<HistoryOutlined />}></Button>
                         </div>
 
                     )
@@ -273,6 +301,7 @@ export function Employs(){
 
     const onFinish: FormProps<FieldType>['onFinish'] = (values) => {
         console.log('Success:', values);
+        values.onboarded=values.onboarded.format('DD/MM/YYYY');
         setConfirmLoading(true);
         dispatch(postEmploys(values) as any).then(unwrapResult).then(async (res:any)=>{
             setConfirmLoading(false);
@@ -304,11 +333,18 @@ export function Employs(){
             }
         })
     }
+    // @ts-ignore
+    const onDateChange = (date, dateString) => {
+        console.log(date, dateString);
+        console.log((typeof (dateString)))
+        form.setFieldsValue({ onboarded: date });
+    };
+
     useEffect(()=>{
         getEmploysList();
         getDepartments();
     },[])
-
+    const dateFormatList = ['DD/MM/YYYY', 'DD/MM/YY', 'DD-MM-YYYY', 'DD-MM-YY'];
     return(
 
         <div style={{width:'100%',height:'calc(100vh - 180px)'}}>
@@ -375,7 +411,7 @@ export function Employs(){
                           name="onboarded"
                           rules={[{ required: true, message: 'Please input your onboarded!' }]}
                       >
-                          <Input />
+                          <DatePicker onChange={onDateChange} defaultValue={dayjs()} format="DD/MM/YYYY" />
                       </Form.Item>
 
                       <Form.Item<FieldType>
@@ -415,8 +451,6 @@ export function Employs(){
             <Drawer title="Disk Usage History" onClose={onDrawerClose} open={draweropen}>
                 <Table<HistoryDataType> columns={historyColumns} dataSource={historyTableData} />
             </Drawer>
-
-
         </div>
 
     )

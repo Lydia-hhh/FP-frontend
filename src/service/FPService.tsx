@@ -33,9 +33,9 @@ export function Employs_Org() {
     })
 }
 
-export function Quota_Post({name,quotaSize}:any){
+export function Quota_Post(params:any){
     return new Promise((resolve,reject)=>{
-        request.post(api.FPApi.QUOTA,{name,quotaSize}).then((res)=>{
+        request.post(api.FPApi.QUOTA,params).then((res)=>{
             resolve(res);
         }).catch((err)=>{
             reject(err);
@@ -43,3 +43,12 @@ export function Quota_Post({name,quotaSize}:any){
     })
 }
 
+export function History_Quota_Get(params:any){
+    return new Promise((resolve,reject)=>{
+        request.get(api.FPApi.HISTORY_QUOTA,{params:params}).then(((res)=>{
+            resolve(res);
+        })).catch((err)=>{
+            reject(err);
+        })
+    })
+}

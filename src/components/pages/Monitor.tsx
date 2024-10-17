@@ -4,12 +4,13 @@ import { Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 
 const _xData=["jiao1","jiao2","jiao3","jiao4","jiao5","jiao6","jiao7","jiao8","jiao9","jiao10","jiao11","jiao12","jiao13","jiao14","jiao15","jiao16"];
-const _yData=[[2,5],[4,5],[1,5],[4,5],[3,5],[2.5,5],[1.0,5],[2,5],[3,5],[5,5],[2,5],[1,5],[9,10],[2,5],[3,5],[4,5]];
+const linux_yData=[[2,5],[4,5],[1,5],[4,5],[3,5],[2.5,5],[1.0,5],[2,5],[3,5],[5,5],[2,5],[1,5],[9,10],[2,5],[3,5],[4,5]];
+const windows_yData=[[4,5],[3,5],[2,5],[9,10],[1,5],[2,5],[5,5],[3,5],[2,5],[1.0,5],[2.5,5],[3,5],[4,5],[1,5],[4,5],[2,5]]
 export function Monitor(){
     const chartRef = useRef<any>(null);
     const myChart = useRef<any>(null);
     const [xData,setxData]=useState<string[]>(_xData);
-    const [yData,setyData]=useState<number[][]>(_yData);
+    // const [yData,setyData]=useState<number[][]>(_yData);
     const initChart = () => {
         if (myChart.current) {
             myChart.current.dispose();
@@ -26,7 +27,9 @@ export function Monitor(){
     const getChart = () => {
         let data1:any[]=[];
         let data2:any[]=[];
-        _yData.forEach((value,index)=>{
+        let data3:any[]=[];
+        let data4:any[]=[];
+        linux_yData.forEach((value,index)=>{
             const percentage=value[0]/value[1];
             if(percentage>=0.9){
                 data1.push({
@@ -39,6 +42,20 @@ export function Monitor(){
                 data1.push(value[0]);
             }
             data2.push(value[1]-value[0]);
+        })
+        windows_yData.forEach((value,index)=>{
+            const percentage=value[0]/value[1];
+            if(percentage>=0.9){
+                data3.push({
+                    value: value[0],
+                    itemStyle: {
+                        color: '#a90000'
+                    }
+                })
+            }else {
+                data3.push(value[0]);
+            }
+            data4.push(value[1]-value[0]);
         })
         const option = {
             title: {
@@ -62,28 +79,28 @@ export function Monitor(){
             },
             series: [
                 {
-                    name: 'disk_usage',
+                    name: 'linux_disk_usage',
                     type: 'bar',
                     stack: 'one',
                     data: data1
                 },
                 {
-                    name: 'free_space',
+                    name: 'linux_free_space',
                     type: 'bar',
                     stack: 'one',
                     data: data2
                 },
                 {
-                    name: 'disk_usage',
+                    name: 'windows_disk_usage',
                     type: 'bar',
                     stack: 'two',
-                    data: data1
+                    data: data3
                 },
                 {
-                    name: 'free_space',
+                    name: 'windows_free_space',
                     type: 'bar',
                     stack: 'two',
-                    data: data2
+                    data: data4
                 },
             ],
             dataZoom: [
