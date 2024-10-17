@@ -47,6 +47,23 @@ export const getHistoryQuota=createAsyncThunk("FP/getHistoryQuota",async (params
     }
 })
 
+export const getMonitor=createAsyncThunk("FP/getMonitor",async ()=>{
+    try{
+        const res=await service.FPService.Monitor_Get();
+        return res;
+    }catch (err:any){
+        console.log(err);
+    }
+})
+
+export const deleteEmploy=createAsyncThunk("FP/deleteEmploy",async (login:any)=>{
+    try{
+        const res=await service.FPService.Employ_Delete(login);
+        return res;
+    }catch (err:any){
+        console.log(err);
+    }
+})
 const FPSlice = createSlice({
     name: 'FPSlice', initialState,
     reducers: {

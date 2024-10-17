@@ -53,3 +53,24 @@ export function History_Quota_Get(params:any){
         })
     })
 }
+
+export function Monitor_Get(){
+    return new Promise((resolve,reject)=>{
+        request.get(api.FPApi.MONITOR).then(((res)=>{
+            resolve(res);
+        })).catch((err)=>{
+            reject(err);
+        })
+    })
+}
+
+export function Employ_Delete(login:any){
+    return new Promise((resolve, reject) => {
+        const url=`${api.FPApi.EMPLOY_DELETE}?login=${login}`
+        request.post(url ).then((res) => {
+            resolve(res);
+        }).catch((err) => {
+            reject(err);
+        })
+    })
+}

@@ -10,16 +10,23 @@ import {
     Select,
     message,
     Popconfirm,
-    PopconfirmProps, Drawer, DatePickerProps, DatePicker
+    PopconfirmProps, Drawer, DatePickerProps, DatePicker, Spin
 } from 'antd';
 import type { TableProps } from 'antd';
 import React, { useEffect, useState } from 'react';
 import type { FormProps } from 'antd';
 import {  Checkbox, Form, Input } from 'antd';
 import { useDispatch } from 'react-redux';
-import {getEmploys, getEmploysOrg, getHistoryQuota, postEmploys, postQuota} from '../../store/features/FPSlice';
+import {
+    deleteEmploy,
+    getEmploys,
+    getEmploysOrg,
+    getHistoryQuota,
+    postEmploys,
+    postQuota
+} from '../../store/features/FPSlice';
 import { unwrapResult } from '@reduxjs/toolkit';
-import {EditOutlined, HistoryOutlined} from "@ant-design/icons";
+import {EditOutlined, HistoryOutlined, LoadingOutlined} from "@ant-design/icons";
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 
@@ -113,6 +120,7 @@ const optionData:any[]=[
 ]
 
 export function Employs(){
+    const [loading,setloading]=useState<boolean>(false);
     const dispatch=useDispatch();
     const [open, setOpen] = useState(false);
     const [addopen,setAddopen]=useState(false);
@@ -125,6 +133,7 @@ export function Employs(){
     const [name,setName]=useState<string|null>(null);
     const [draweropen,setDraweropen]=useState(false)
     const [os,setos]=useState("windows");
+    const [login,setlogin]=useState<any>(null);
     const showDrawer = (login:string,win_flag:boolean) => {
         setos(win_flag?"windows":'linux');
         fetchHistoryQuota(login,win_flag)
@@ -182,9 +191,16 @@ export function Employs(){
 
     const deleteConfirm: PopconfirmProps['onConfirm'] = (e) => {
         console.log(e);
+        console.log(login);
         setConfirmLoading(true);
-        setTimeout(()=>{setConfirmLoading(false)},1000)
-        message.success('Click on Yes');
+        dispatch(deleteEmploy(login) as any).then(unwrapResult).then((res:any)=>{
+            if(res){
+                message.success("delete successfully!");
+                getEmploysList();
+            }else {
+                message.error("delete failed.")
+            }
+        })
     };
 
     const deleteCancel: PopconfirmProps['onCancel'] = (e) => {
@@ -193,9 +209,17 @@ export function Employs(){
     };
 
     const fetchHistoryQuota=(login:string,win_flag:boolean)=>{
-        dispatch(getHistoryQuota({login:login,win_flag:win_flag}) as any).then(unwrapResult).then((res:any)=>{
-            if(res && res.code==200){
-                sethistoryTableData(res.data);
+        dispatch(getHistoryQuota({login:login,winflag:win_flag}) as any).then(unwrapResult).then((res:any)=>{
+            if(res){
+                let data:any[]=[];
+                res.forEach((value:any,index:any)=>{
+                    data.push({
+                        key:index,
+                        date:value.date,
+                        disk_usage:value.usage
+                    })
+                })
+                sethistoryTableData(data);
             }
         })
     }
@@ -281,15 +305,15 @@ export function Employs(){
                 <Space size="middle">
                     {/*<Button onClick={()=>showModal(record.login)}>SetQuota</Button>*/}
                     <Popconfirm
-                        title="Delete the task"
-                        description="Are you sure to delete this task?"
+                        title="Delete"
+                        description="Are you sure to delete this user?"
                         onConfirm={deleteConfirm}
                         onCancel={deleteCancel}
                         okText="Yes"
                         cancelText="No"
                         okButtonProps={{ loading: confirmLoading }}
                     >
-                        <Button danger>Delete</Button>
+                        <Button onClick={()=>{setlogin(record.login)}} danger>Delete</Button>
                     </Popconfirm>
                     {/*<Button>History</Button>*/}
                 </Space>
@@ -326,7 +350,9 @@ export function Employs(){
     };
 
     const getEmploysList=()=>{
+        setloading(true);
         dispatch(getEmploys() as any).then(unwrapResult).then(async (res:any)=>{
+            setloading(false);
             if(res){
                 let data:any[]=[];
                 res.forEach((value:any,index:any)=>{
@@ -375,12 +401,16 @@ export function Employs(){
         <div style={{width:'100%',height:'calc(100vh - 180px)'}}>
 
         {/* add spin */}
-            <div style={{float:'right',marginTop:'20px',marginBottom:'20px'}}>
-                <Button type='primary' style={{width:'300px'}} onClick={showAddModal}>Add User</Button>
-            </div>
+            <Spin spinning={loading} indicator={<LoadingOutlined spin/>}>
+                <div style={{float: 'right', marginTop: '20px', marginBottom: '20px'}}>
+                    <Button type='primary' style={{width: '300px'}} onClick={showAddModal}>Add User</Button>
+                </div>
 
-            <Table<DataType> columns={columns} dataSource={tableData} />
-     {/* add spin */}
+                <Table<DataType> columns={columns} dataSource={tableData}/>
+
+            </Spin>
+
+            {/* add spin */}
 
 
             <Modal
@@ -390,7 +420,7 @@ export function Employs(){
                 confirmLoading={confirmLoading}
                 onCancel={handleCancel}
             >
-                <div style={{marginLeft:'10%'}}>
+            <div style={{marginLeft:'10%'}}>
                     <InputNumber addonAfter="GB" min={0} style={{width:'80%'}} defaultValue={3} onChange={onChange} />
                 </div>
 
