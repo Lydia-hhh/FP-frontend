@@ -118,7 +118,7 @@ export function Employs(){
     const [addopen,setAddopen]=useState(false);
     const [confirmLoading, setConfirmLoading] = useState(false);
     const [form] = Form.useForm();
-    const [tableData,setTableData]=useState<any[]>(data);
+    const [tableData,setTableData]=useState<any[]>([]);
     const [historyTableData,sethistoryTableData]=useState<any[]>(historyData)
     const [options,setOptions]=useState<any[]>(optionData)
     const [quota,setQuota]=useState<any>(3);
@@ -126,6 +126,7 @@ export function Employs(){
     const [draweropen,setDraweropen]=useState(false)
     const [os,setos]=useState("windows");
     const showDrawer = (login:string,win_flag:boolean) => {
+        setos(win_flag?"windows":'linux');
         fetchHistoryQuota(login,win_flag)
         setDraweropen(true);
     };
@@ -159,7 +160,8 @@ export function Employs(){
             }
         }
         dispatch(postQuota(params) as any).then(unwrapResult).then(async (res:any)=>{
-            if(res && res.code==200){
+            if(res!==null){
+                getEmploysList();
                 message.success("Set quota successfully!");
             }else{
                 message.error("Set quota failed.")
@@ -216,6 +218,10 @@ export function Employs(){
             title: 'Id',
             dataIndex: 'id',
             key: 'id',
+            sorter:{
+                compare:(a,b)=>a.id-b.id,
+                multiple:3,
+            }
         },
         {
             title: 'Name',
@@ -306,7 +312,7 @@ export function Employs(){
         dispatch(postEmploys(values) as any).then(unwrapResult).then(async (res:any)=>{
             setConfirmLoading(false);
             setOpen(false);
-            if(res && res.code==200){
+            if(res && res.id){
                 message.success("Add user successfully!");
                 getEmploysList();
             }else{
@@ -321,15 +327,34 @@ export function Employs(){
 
     const getEmploysList=()=>{
         dispatch(getEmploys() as any).then(unwrapResult).then(async (res:any)=>{
-            if(res && res.code==200){
-                setTableData(res.data);
+            if(res){
+                let data:any[]=[];
+                res.forEach((value:any,index:any)=>{
+                    data.push({
+                        key:value.id,
+                        id: value.id,
+                        name: value.name,
+                        login: value.login,
+                        onboarded: value.onboarded,
+                        dept: value.dept,
+                        linux_quota:value.quotaOnLin,
+                        windows_quota:value.quotaOnWin
+                    })
+                })
+                setTableData(data);
             }
         })
     }
     const getDepartments=()=>{
         dispatch(getEmploysOrg() as any).then(unwrapResult).then(async (res:any)=>{
-            if(res && res.code==200){
-                setOptions(res.data);
+            if(res){
+                let data:any[]=[];
+                res.forEach((value:any,index:any)=>{
+                    data.push({
+                     value: value.dept, label: value.description
+                    })
+                })
+                setOptions(data);
             }
         })
     }
@@ -448,7 +473,7 @@ export function Employs(){
               </div>
 
             </Modal>
-            <Drawer title="Disk Usage History" onClose={onDrawerClose} open={draweropen}>
+            <Drawer title={`${os} Disk Usage History`} onClose={onDrawerClose} open={draweropen}>
                 <Table<HistoryDataType> columns={historyColumns} dataSource={historyTableData} />
             </Drawer>
         </div>

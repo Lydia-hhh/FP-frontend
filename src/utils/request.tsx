@@ -3,7 +3,7 @@ import axios from 'axios'
 const pendingRequests=new Map();
 
 const request = axios.create({
-    baseURL: 'http://127.0.0.1:5050',  
+    baseURL: 'http://10.2.16.186:8081',
     timeout: 120000
 })
 

@@ -34,8 +34,9 @@ export function Employs_Org() {
 }
 
 export function Quota_Post(params:any){
+    const url=`${api.FPApi.QUOTA}?name=${params.name}&linux_quota=${params.linux_quota}&win_quota=${params.win_quota}`;
     return new Promise((resolve,reject)=>{
-        request.post(api.FPApi.QUOTA,params).then((res)=>{
+        request.post(url).then((res)=>{
             resolve(res);
         }).catch((err)=>{
             reject(err);
