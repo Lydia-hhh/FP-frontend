@@ -15,7 +15,7 @@ export function Employs_Get() {
 
 export function Employs_Post(params:any) {
     return new Promise((resolve, reject) => {
-        request.post(api.FPApi.EMPLOYS, { params }).then((res) => {
+        request.post(api.FPApi.EMPLOYS,  params ).then((res) => {
             resolve(res);
         }).catch((err) => {
             reject(err);
@@ -33,9 +33,9 @@ export function Employs_Org() {
     })
 }
 
-export function Quota_Post(params:any){
+export function Quota_Post({name,quotaSize}:any){
     return new Promise((resolve,reject)=>{
-        request.post(api.FPApi.QUOTA,{params}).then((res)=>{
+        request.post(api.FPApi.QUOTA,{name,quotaSize}).then((res)=>{
             resolve(res);
         }).catch((err)=>{
             reject(err);

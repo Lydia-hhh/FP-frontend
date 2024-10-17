@@ -1,5 +1,17 @@
 
-import {Button, Space, Table, Tag, Modal, InputNumber, InputNumberProps, Select, message} from 'antd';
+import {
+    Button,
+    Space,
+    Table,
+    Tag,
+    Modal,
+    InputNumber,
+    InputNumberProps,
+    Select,
+    message,
+    Popconfirm,
+    PopconfirmProps, Drawer
+} from 'antd';
 import type { TableProps } from 'antd';
 import React, { useEffect, useState } from 'react';
 import type { FormProps } from 'antd';
@@ -7,15 +19,26 @@ import {  Checkbox, Form, Input } from 'antd';
 import { useDispatch } from 'react-redux';
 import { getEmploys, getEmploysOrg, postEmploys, postQuota } from '../../store/features/FPSlice';
 import { unwrapResult } from '@reduxjs/toolkit';
+import {EditOutlined, HistoryOutlined} from "@ant-design/icons";
 
 
 interface DataType {
+    key:number;
     id: number;
     name: string;
     login: string;
     onboarded: string;
     dept: string;
+    linux_quota:number;
+    windows_quota:number
 }
+
+interface HistoryDataType{
+    key:number;
+    date:string;
+    disk_usage:number
+}
+
 type FieldType = {
     name?: string;
     login?:string;
@@ -25,35 +48,65 @@ type FieldType = {
 };
 
 
-
+const historyData:HistoryDataType[]=[
+    {
+        key:1,
+        date:'01/02/2024',
+        disk_usage:2
+    },
+    {
+        key:2,
+        date:'01/02/2024',
+        disk_usage:4
+    },
+    {
+        key:3,
+        date:'01/02/2024',
+        disk_usage:3
+    },
+    {
+        key:4,
+        date:'01/02/2024',
+        disk_usage:2
+    },
+]
 
 const data: DataType[] = [
     {
+        key:3,
         id: 3,
         name: 'Helen Hywater',
         login: 'hywat',
         onboarded: '03/01/2021',
-        dept: 'C9899',
+        dept: 'Sales',
+        linux_quota:3,
+        windows_quota:3
     },
     {
+        key:4,
         id: 4,
         name: 'Helen Hywater',
         login: 'hywat',
         onboarded: '03/01/2021',
-        dept: 'C9899',
+        dept: 'Sales',
+        linux_quota:3,
+        windows_quota:3
     },
     {
+        key:5,
         id: 5,
         name: 'Helen Hywater',
         login: 'hywat',
         onboarded: '03/01/2021',
-        dept: 'C9899',
+        dept: 'Sales',
+        linux_quota:3,
+        windows_quota:3
     },
 ];
 const optionData:any[]=[
-    { value: 'C9899', label: 'C9899' },
-    { value: 'E4537', label: 'E4537' },
-    { value: 'A0001', label: 'A0001' },
+    { value: 'C9899', label: 'Sales' },
+    { value: 'E4537', label: 'Human Resources' },
+    { value: 'A0001', label: 'Information Technology' },
 ]
 
 export function Employs(){
@@ -63,9 +116,19 @@ export function Employs(){
     const [confirmLoading, setConfirmLoading] = useState(false);
     const [form] = Form.useForm();
     const [tableData,setTableData]=useState<any[]>(data);
+    const [historyTableData,sethistoryTableData]=useState<any[]>(historyData)
     const [options,setOptions]=useState<any[]>(optionData)
     const [quota,setQuota]=useState<any>(3);
     const [name,setName]=useState<string|null>(null);
+    const [draweropen,setDraweropen]=useState(false)
+    const showDrawer = () => {
+        setDraweropen(true);
+    };
+
+    const onDrawerClose = () => {
+        setDraweropen(false);
+    };
+
     const showModal = (login:any) => {
         setName(login);
         setOpen(true);
@@ -75,12 +138,7 @@ export function Employs(){
     };
     const handleOk = () => {
         setConfirmLoading(true);
-        //set quota
-        const params={
-            name:name,
-            quotaSize:quota
-        };
-        dispatch(postQuota(params) as any).then(unwrapResult).then(async (res:any)=>{
+        dispatch(postQuota({name:name,quotaSize:quota}) as any).then(unwrapResult).then(async (res:any)=>{
             if(res && res.code==200){
                 message.success("Set quota successfully!");
             }else{
@@ -99,6 +157,31 @@ export function Employs(){
         console.log('Clicked cancel button');
         setAddopen(false);
     };
+
+    const deleteConfirm: PopconfirmProps['onConfirm'] = (e) => {
+        console.log(e);
+        setConfirmLoading(true);
+        setTimeout(()=>{setConfirmLoading(false)},1000)
+        message.success('Click on Yes');
+    };
+
+    const deleteCancel: PopconfirmProps['onCancel'] = (e) => {
+        console.log(e);
+        message.error('Click on No');
+    };
+
+    const historyColumns:TableProps<HistoryDataType>['columns']=[
+        {
+            title:'Date',
+            dataIndex:'date',
+            key:'date'
+        },
+        {
+            title:'Disk Usage',
+            dataIndex:'disk_usage',
+            key:'disk_usage'
+        }
+    ]
 
     const columns: TableProps<DataType>['columns'] = [
         {
@@ -122,16 +205,59 @@ export function Employs(){
             key: 'onboarded',
         },
         {
-            title: 'Dept',
+            title: 'Department',
             dataIndex: 'dept',
             key: 'dept',
+        },
+        {
+            title:'Quota',
+            children: [
+                {
+                    title: 'Linux Quota',
+                    dataIndex: 'linux_quota',
+                    key: 'linux_quota',
+                    render: (text,record)=>(
+                        <div>
+                            <span>{text}GB</span>
+                            <Button type="text" icon={<EditOutlined />} onClick={()=>showModal(record.login)}></Button>
+                            <Button type="text" onClick={showDrawer} icon={<HistoryOutlined />}></Button>
+                        </div>
+
+                    )
+                },
+                {
+                    title: 'Windows Quota',
+                    dataIndex: 'windows_quota',
+                    key: 'windows_quota',
+                    render: (text,record)=>(
+                        <div>
+                            <span>{text}GB</span>
+                            <Button type="text" icon={<EditOutlined />} onClick={()=>showModal(record.login)}></Button>
+                            <Button type="text" onClick={showDrawer} icon={<HistoryOutlined />}></Button>
+                        </div>
+
+                    )
+                },
+            ]
         },
         {
             title: 'Action',
             key: 'action',
             render: (_, record) => (
                 <Space size="middle">
-                    <Button onClick={()=>showModal(record.login)}>set quota</Button>
+                    {/*<Button onClick={()=>showModal(record.login)}>SetQuota</Button>*/}
+                    <Popconfirm
+                        title="Delete the task"
+                        description="Are you sure to delete this task?"
+                        onConfirm={deleteConfirm}
+                        onCancel={deleteCancel}
+                        okText="Yes"
+                        cancelText="No"
+                        okButtonProps={{ loading: confirmLoading }}
+                    >
+                        <Button danger>Delete</Button>
+                    </Popconfirm>
+                    {/*<Button>History</Button>*/}
                 </Space>
             ),
         },
@@ -183,10 +309,6 @@ export function Employs(){
         getDepartments();
     },[])
 
-    const handleChangeNumber=(value:any)=>{
-        console.log(value);
-    }
-
     return(
 
         <div style={{width:'100%',height:'calc(100vh - 180px)'}}>
@@ -218,6 +340,7 @@ export function Employs(){
                 open={addopen}
                 confirmLoading={confirmLoading}
                 footer=''
+                closable={false}
             >
               <div>
                   <Form
@@ -284,13 +407,14 @@ export function Employs(){
                               </Button>
                               <Button onClick={handleAddCancel}>Cancel</Button>
                           </div>
-
                       </Form.Item>
                   </Form>
               </div>
 
             </Modal>
-
+            <Drawer title="Disk Usage History" onClose={onDrawerClose} open={draweropen}>
+                <Table<HistoryDataType> columns={historyColumns} dataSource={historyTableData} />
+            </Drawer>
 
 
         </div>

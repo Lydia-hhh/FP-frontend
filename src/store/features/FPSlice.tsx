@@ -29,9 +29,9 @@ export const getEmploysOrg = createAsyncThunk("FP/getEmploysOrg", async () => {
         console.log(err)
     }
 })
-export const postQuota=createAsyncThunk("FP/postQuota",async(params:any)=>{
+export const postQuota=createAsyncThunk("FP/postQuota",async({name,quotaSize}:any)=>{
     try{
-        const res=await service.FPService.Quota_Post(params);
+        const res=await service.FPService.Quota_Post({name,quotaSize});
         return res;
     }catch(err:any){
         console.log(err);
